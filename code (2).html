@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Наш список желаний — делимся праздничными пожеланиями</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+  <style>
+    body {
+      background: linear-gradient(135deg, #f9d5d3 0%, #fcefee 100%);
+      min-height: 100vh;
+    }
+    /* Новый градиент для хедера с белым текстом */
+    .header-gradient {
+      background: linear-gradient(135deg, #f7a1a1 0%, #fbc4c4 100%);
+      color: white;
+    }
+    .card-hover {
+      transition: all 0.3s ease;
+      position: relative;
+      padding-top: 2.5rem; /* чтобы было место для даты и кнопки удаления */
+    }
+    .card-hover:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .image-preview {
+      max-width: 200px;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    /* Стили для SVG подарка в карточке без фото */
+    .gift-svg-container {
+      width: 100%;
+      height: 192px; /* примерно высота фото */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #d97706; /* теплый золотистый цвет */
+      opacity: 0.4;
+      margin-bottom: 0.75rem;
+    }
+    /* Кнопка удаления */
+    .delete-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background-color: #f87171; /* красный оттенок */
+      color: white;
+      border: none;
+      border-radius: 0.375rem; /* rounded-md */
+      padding: 0.25rem 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+      z-index: 10;
+    }
+    .delete-btn:hover {
+      background-color: #ef4444;
+    }
+    /* Контейнер даты */
+    .wish-date {
+      position: absolute;
+      top: 0.5rem;
+      left: 0.75rem;
+      font-size: 0.875rem;
+      color: #6b7280; /* gray-500 */
+      font-weight: 500;
+      user-select: none;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  <!-- Хедер -->
+  <header class="header-gradient">
+    <div class="container mx-auto px-4 py-8">
+      <div class="text-center">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4">🎁 Наш список желаний</h1>
+        <p class="text-xl opacity-90">
+          Делитесь своими праздничными пожеланиями и создавайте волшебство
+          подарков
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Основной контент -->
+  <main class="container mx-auto px-4 py-8">
+    <!-- Форма добавления пожелания -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8 card-hover">
+      <h2 class="text-2xl font-semibold mb-6 text-gray-800">Добавить пожелание</h2>
+      <form id="wishForm" class="space-y-4" novalidate>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Описание пожелания</label
+          >
+          <input
+            type="text"
+            id="wishTitle"
+            required
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+            placeholder="Что бы вы хотели получить?"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Ссылка на подарок (необязательно)</label
+          >
+          <input
+            type="url"
+            id="wishLink"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+            placeholder="https://example.com/ссылка-на-подарок"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Повод</label
+          >
+          <select
+            id="wishOccasion"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+          >
+            <option value="birthday">День рождения</option>
+            <option value="christmas">Новый год / Рождество</option>
+            <option value="anniversary">Годовщина</option>
+            <option value="valentines">День святого Валентина</option>
+            <option value="other">Другой</option>
+          </select>
+        </div>
+
+        <!-- Новое поле для даты, скрыто по умолчанию -->
+        <div id="customDateContainer" class="hidden">
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Выберите дату</label
+          >
+          <input
+            type="date"
+            id="customDate"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Для кого</label
+          >
+          <select
+            id="wishFor"
+            required
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+          >
+            <option value="him">Ему</option>
+            <option value="her">Ей</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Фото (необязательно)</label
+          >
+          <input
+            type="file"
+            id="wishPhoto"
+            accept="image/*"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+          />
+          <div id="imagePreview" class="mt-3 hidden">
+            <img
+              src=""
+              alt="Превью выбранного изображения"
+              class="image-preview border rounded-lg"
+            />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          class="w-full bg-pink-600 text-white py-3 px-6 rounded-lg hover:bg-pink-700 transition duration-200 font-semibold"
+        >
+          <i class="fas fa-plus mr-2"></i>Добавить в список желаний
+        </button>
+      </form>
+    </div>
+
+    <!-- Отображение списка пожеланий -->
+    <div class="mb-12">
+      <h2 class="text-2xl font-semibold mb-6 text-gray-800">Пожелания для него</h2>
+      <div
+        id="wishlistForHim"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      >
+        <div class="text-center py-12 text-gray-500" id="emptyStateHim">
+          <i class="fas fa-gift text-4xl mb-4"></i>
+          <p>Пока нет добавленных пожеланий для него.</p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h2 class="text-2xl font-semibold mb-6 text-gray-800">Пожелания для неё</h2>
+      <div
+        id="wishlistForHer"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      >
+        <div class="text-center py-12 text-gray-500" id="emptyStateHer">
+          <i class="fas fa-gift text-4xl mb-4"></i>
+          <p>Пока нет добавленных пожеланий для неё.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Футер -->
+  <footer class="bg-gray-800 text-white py-8 mt-12">
+    <div class="container mx-auto px-4 text-center">
+      <p>Сделано с ❤️ для особенных моментов вместе</p>
+    </div>
+  </footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const photoInput = document.getElementById("wishPhoto");
+      const imagePreview = document.getElementById("imagePreview");
+      const previewImg = imagePreview.querySelector("img");
+
+      photoInput.addEventListener("change", function (e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            previewImg.src = e.target.result;
+            imagePreview.classList.remove("hidden");
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      const occasionSelect = document.getElementById("wishOccasion");
+      const customDateContainer = document.getElementById("customDateContainer");
+      const customDateInput = document.getElementById("customDate");
+
+      occasionSelect.addEventListener("change", function () {
+        if (occasionSelect.value === "other") {
+          customDateContainer.classList.remove("hidden");
+          customDateInput.required = true;
+        } else {
+          customDateContainer.classList.add("hidden");
+          customDateInput.required = false;
+          customDateInput.value = "";
+        }
+      });
+
+      const wishlistForHim = document.getElementById("wishlistForHim");
+      const wishlistForHer = document.getElementById("wishlistForHer");
+      const emptyStateHim = document.getElementById("emptyStateHim");
+      const emptyStateHer = document.getElementById("emptyStateHer");
+
+      const wishForm = document.getElementById("wishForm");
+
+      wishForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        let displayDate = new Date().toLocaleDateString();
+        if (occasionSelect.value === "other" && customDateInput.value) {
+          const selectedDate = new Date(customDateInput.value);
+          displayDate = selectedDate.toLocaleDateString();
+        }
+
+        const wish = {
+          id: Date.now().toString(),
+          title: document.getElementById("wishTitle").value,
+          link: document.getElementById("wishLink").value,
+          occasion: occasionSelect.value,
+          photo: previewImg.src !== "" ? previewImg.src : null,
+          timestamp: displayDate,
+          forWhom: document.getElementById("wishFor").value,
+        };
+
+        addWishToDOM(wish);
+        saveWishToStorage(wish);
+
+        wishForm.reset();
+        imagePreview.classList.add("hidden");
+        previewImg.src = "";
+        customDateContainer.classList.add("hidden");
+        customDateInput.required = false;
+      });
+
+      function addWishToDOM(wish) {
+        if (wish.forWhom === "him") {
+          emptyStateHim.style.display = "none";
+        } else {
+          emptyStateHer.style.display = "none";
+        }
+
+        const occasionIcons = {
+          birthday: "🎂",
+          christmas: "🎄",
+          anniversary: "💝",
+          valentines: "❤️",
+          other: "🎁",
+        };
+
+        const wishCard = document.createElement("div");
+        wishCard.className = "bg-white rounded-xl shadow-lg p-6 card-hover fade-in";
+        wishCard.dataset.id = wish.id;
+
+        let photoHtml = "";
+        if (wish.photo) {
+          photoHtml = `<img src="${wish.photo}" alt="Визуальное изображение пожелания" class="w-full h-48 object-cover rounded-lg mb-3">`;
+        } else {
+          photoHtml = `
+            <div class="gift-svg-container" aria-label="Подарок">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="96" height="96" aria-hidden="true">
+                <path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7H1v-2h2V7a3 3 0 0 1 3-3h2a3 3 0 0 1 3 3v3h2V7a3 3 0 0 1 3-3h2a3 3 0 0 1 3 3v3h2v2h-3zM9 7H7a1 1 0 0 0-1 1v2h3V7zm6 0h-2v3h3V8a1 1 0 0 0-1-1zm-6 8v-3H6v3h3zm6 0h-3v-3h3v3z"/>
+              </svg>
+            </div>
+          `;
+        }
+
+        wishCard.innerHTML = `
+          <div class="wish-date">${wish.timestamp}</div>
+          <button class="delete-btn" title="Удалить пожелание" aria-label="Удалить пожелание">&times;</button>
+          <div class="flex items-start justify-between mb-4">
+            <span class="text-2xl">${occasionIcons[wish.occasion]}</span>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-800 mb-3">${wish.title}</h3>
+          ${photoHtml}
+          ${
+            wish.link
+              ? `<a href="${wish.link}" target="_blank" rel="noopener noreferrer" class="text-pink-600 hover:text-pink-800 flex items-center">
+                  <i class="fas fa-link mr-2"></i>Посмотреть подарок
+                </a>`
+              : ""
+          }
+        `;
+
+        const deleteBtn = wishCard.querySelector(".delete-btn");
+        deleteBtn.addEventListener("click", () => {
+          removeWish(wish.id, wish.forWhom, wishCard);
+        });
+
+        if (wish.forWhom === "him") {
+          wishlistForHim.appendChild(wishCard);
+        } else {
+          wishlistForHer.appendChild(wishCard);
+        }
+      }
+
+      function saveWishToStorage(wish) {
+        let wishes = JSON.parse(localStorage.getItem("giftWishes")) || [];
+        wishes.push(wish);
+        localStorage.setItem("giftWishes", JSON.stringify(wishes));
+      }
+
+      function removeWish(id, forWhom, wishCard) {
+        let wishes = JSON.parse(localStorage.getItem("giftWishes")) || [];
+        wishes = wishes.filter((w) => w.id !== id);
+        localStorage.setItem("giftWishes", JSON.stringify(wishes));
+
+        wishCard.remove();
+
+        const container = forWhom === "him" ? wishlistForHim : wishlistForHer;
+        const cards = container.querySelectorAll(".card-hover");
+        if (cards.length === 0) {
+          if (forWhom === "him") {
+            emptyStateHim.style.display = "block";
+          } else {
+            emptyStateHer.style.display = "block";
+          }
+        }
+      }
+
+      function loadWishes() {
+        const wishes = JSON.parse(localStorage.getItem("giftWishes")) || [];
+        if (wishes.length > 0) {
+          emptyStateHim.style.display = "none";
+          emptyStateHer.style.display = "none";
+
+          wishes.forEach((wish) => addWishToDOM(wish));
+        }
+      }
+
+      loadWishes();
+    });
+  </script>
+</body>
+</html>
